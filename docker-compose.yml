@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: webhack-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: webhack
+      POSTGRES_PASSWORD: webhack
+      POSTGRES_DB: webhack
+    ports:
+      - '55432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U webhack -d webhack']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: webhack-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: webhack-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '4000'
+      APP_URL: http://localhost:4000
+      CLIENT_URL: http://localhost:3000
+      DATABASE_URL: postgresql://webhack:webhack@postgres:5432/webhack?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev_access_secret_change_me_at_least_32_chars_long
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_me_at_least_32_chars_long
+    ports:
+      - '4000:4000'
+
+volumes:
+  pgdata:
