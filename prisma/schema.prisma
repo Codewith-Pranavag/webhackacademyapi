@@ -390,6 +390,8 @@ model Course {
   title           String
   subtitle        String?
   description     String?
+  outcomes        String[]
+  requirements    String[]
   categoryId      String       @map("category_id") @db.Uuid
   instructorId    String       @map("instructor_id") @db.Uuid
   level           CourseLevel  @default(beginner)
@@ -453,6 +455,7 @@ model Lesson {
   position        Int
   durationSeconds Int              @default(0) @map("duration_seconds")
   isPreview       Boolean          @default(false) @map("is_preview")
+  videoUrl        String?          @map("video_url")
   mediaAssetId    String?          @map("media_asset_id") @db.Uuid
   quizId          String?          @map("quiz_id") @db.Uuid
   transcript      String?
@@ -944,6 +947,8 @@ model Order {
   totalCents Int         @map("total_cents")
   currency   String      @default("USD") @db.Char(3)
   couponId   String?     @map("coupon_id") @db.Uuid
+  provider        String? @map("provider")
+  providerOrderId String? @unique @map("provider_order_id")
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)

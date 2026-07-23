@@ -1,22 +1,38 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { AppModule } from './app.module';
 import type { Env } from './config/env.validation';
 
+// Allow BigInt (e.g. media sizeBytes) to serialize to JSON as a string.
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+    rawBody: true, // needed for Razorpay webhook signature verification
+  });
+
+  // Local upload storage (avatars). In production this moves to S3/R2.
+  mkdirSync(join(process.cwd(), 'uploads', 'avatars'), { recursive: true });
+  mkdirSync(join(process.cwd(), 'uploads', 'resources'), { recursive: true });
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
   // Structured logging (pino)
   app.useLogger(app.get(Logger));
 
   const config = app.get(ConfigService<Env, true>);
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cookieParser());
   app.enableCors({
     origin: [config.get('CLIENT_URL', { infer: true })],

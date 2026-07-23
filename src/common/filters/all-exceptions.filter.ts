@@ -21,6 +21,7 @@ interface ErrorBody {
 const STATUS_CODE: Record<number, string> = {
   400: 'VALIDATION_ERROR',
   401: 'UNAUTHENTICATED',
+  402: 'PAYMENT_REQUIRED',
   403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',

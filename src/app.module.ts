@@ -7,7 +7,17 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { AdminModule } from './admin/admin.module';
+import { CategoriesModule } from './categories/categories.module';
+import { CoursesModule } from './courses/courses.module';
+import { CurriculumModule } from './curriculum/curriculum.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { AssessmentsModule } from './assessments/assessments.module';
+import { CertificatesModule } from './certificates/certificates.module';
+import { PaymentsModule } from './payments/payments.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 @Module({
@@ -34,9 +44,20 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     RedisModule,
     HealthModule,
     AuthModule,
+    UsersModule,
+    AdminModule,
+    CategoriesModule,
+    CoursesModule,
+    CurriculumModule,
+    EnrollmentModule,
+    AssessmentsModule,
+    CertificatesModule,
+    PaymentsModule,
   ],
   providers: [
+    // Order matters: authenticate first, then authorize by role.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

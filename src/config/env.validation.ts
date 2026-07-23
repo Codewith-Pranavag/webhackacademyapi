@@ -19,6 +19,11 @@ export const envSchema = z.object({
   JWT_REFRESH_TTL: z.string().default('30d'),
 
   REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
+
+  // Razorpay — leave KEY_ID empty to run in local test mode (no external calls).
+  RAZORPAY_KEY_ID: z.string().default(''),
+  RAZORPAY_KEY_SECRET: z.string().default('dev_razorpay_secret'),
+  RAZORPAY_WEBHOOK_SECRET: z.string().default('dev_razorpay_webhook_secret'),
 });
 
 export type Env = z.infer<typeof envSchema>;
