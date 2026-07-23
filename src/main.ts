@@ -50,20 +50,10 @@ async function bootstrap() {
       .map(normalizeOrigin)
       .filter(Boolean),
   );
-
-  app.enableCors({
-    origin(origin, callback) {
-      // No Origin header → non-browser client (curl, server-to-server) or
-      // a same-origin request (e.g. Swagger UI). Always allow those.
-      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
-    credentials: true,
-  });
-
+app.enableCors({
+  origin: true,
+  credentials: true,
+});
   // URI versioning → /v1/*
   app.enableVersioning({
     type: VersioningType.URI,
