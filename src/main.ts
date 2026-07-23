@@ -34,8 +34,33 @@ async function bootstrap() {
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cookieParser());
+
+  // CORS — allow the configured client origins (CLIENT_URL may be a
+  // comma-separated list) plus the known production/dev origins. We match on a
+  // NORMALISED origin (trailing slash + case stripped) and echo the exact
+  // request origin back — never "*", so credentialed requests are permitted.
+  const DEFAULT_ORIGINS = [
+    'http://localhost:3000',
+    'https://webhackacademy.vercel.app',
+  ];
+  const normalizeOrigin = (o: string) =>
+    o.trim().replace(/\/+$/, '').toLowerCase();
+  const allowedOrigins = new Set(
+    [...DEFAULT_ORIGINS, ...config.get('CLIENT_URL', { infer: true }).split(',')]
+      .map(normalizeOrigin)
+      .filter(Boolean),
+  );
+
   app.enableCors({
-    origin: [config.get('CLIENT_URL', { infer: true })],
+    origin(origin, callback) {
+      // No Origin header → non-browser client (curl, server-to-server) or
+      // a same-origin request (e.g. Swagger UI). Always allow those.
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     credentials: true,
   });
 

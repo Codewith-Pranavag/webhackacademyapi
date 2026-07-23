@@ -7,7 +7,19 @@ export const envSchema = z.object({
     .default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
   APP_URL: z.string().url().default('http://localhost:4000'),
-  CLIENT_URL: z.string().url().default('http://localhost:3000'),
+  // May be a single origin or a comma-separated list of allowed CORS origins.
+  CLIENT_URL: z
+    .string()
+    .default('http://localhost:3000')
+    .refine(
+      (val) =>
+        val
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .every((u) => /^https?:\/\/[^\s,]+$/i.test(u)),
+      { message: 'CLIENT_URL must be a comma-separated list of http(s) origins' },
+    ),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
